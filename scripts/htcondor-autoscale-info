@@ -1,0 +1,58 @@
+#!/usr/bin/python3
+
+import argparse
+import time
+
+import htcondor
+
+import htcondor_autoscale_manager
+
+def main():
+
+    parser = argparse.ArgumentParser(
+        description="Print the autoscale statistics of a given pool and deployment")
+    parser.add_argument(
+        '--pool', metavar='hostname', help='pool to examine')
+    parser.add_argument(
+        '--resource', metavar='resource_name', help='GLIDEIN_ResourceName value')
+    args = parser.parse_args()
+
+    counts = htcondor_autoscale_manager.count_idle(args.resource, pool=args.pool)
+
+    now = time.time()
+
+    print(f"There are {counts['idle']} idle startds in the resource out of {counts['total']} total.")
+
+    ads = htcondor_autoscale_manager.get_offline_ads(args.resource, pool=args.pool)
+    good_ads = []
+    if not ads:
+        ads = []
+    for ad in ads:
+        if (ad.get("LastHeardFrom", 0) + ad.get("ClassAdLifetime") >= now + 20*60):
+            good_ads.append(ad)
+    if not good_ads:
+        ad = htcondor_autoscale_manager.generate_offline_ad(args.resource, pool=args.pool)
+        coll = htcondor.Collector(args.pool)
+        coll.advertise([ad], command="UPDATE_STARTD_AD")
+        good_ads.append(ad)
+
+    if not good_ads:
+        print("Unable to generate an offline ad for this resource.  Is it running?")
+    else:
+        print(f'Have offline ad with name: {good_ads[0]["Name"]}')
+
+    useful_offline_ads = 0
+    for ad in good_ads:
+        if ad.get("MachineLastMatchTime") and (ad["MachineLastMatchTime"] > now - 5*60):
+            useful_offline_ads += 1
+
+    print(f"There were {useful_offline_ads} offline ads marked as useful.")
+
+    slots_needed = useful_offline_ads - counts['idle']
+    target_slots = counts['total'] + slots_needed
+    metric = target_slots / counts['total']
+    print(f"Current occcupancy metric value: {metric}")
+
+if __name__ == '__main__':
+    main()
+
