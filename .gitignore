@@ -1,0 +1,4 @@
+build/
+htcondor_autoscale_manager.egg-info/
+src/htcondor_autoscale_manager.egg-info/
+src/htcondor_autoscale_manager/__pycache__
