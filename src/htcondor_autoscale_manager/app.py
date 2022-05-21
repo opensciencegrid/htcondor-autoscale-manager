@@ -21,7 +21,7 @@ scheduler.start()
 
 g_metric = 1.0
 
-@scheduler.task("interval", id="metric_update", seconds=10)
+@scheduler.task("interval", id="metric_update", seconds=60)
 def metric_update():
     resource = app.config.get("RESOURCE_NAME")
     if not resource:
