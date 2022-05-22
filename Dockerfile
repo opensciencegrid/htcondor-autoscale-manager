@@ -20,7 +20,9 @@ COPY pyproject.toml setup.cfg examples/condor_lock.patch /app/
 COPY src /app/src
 RUN pip3 install --upgrade pip setuptools && pip3 install --no-cache-dir /app
 
-RUN touch /etc/sysconfig/httpd && mkdir /wsgi && cd / && patch -p0 < /app/condor_lock.patch
+RUN touch /etc/sysconfig/httpd && mkdir /wsgi && cd / && patch -p0 < /app/condor_lock.patch && \
+    curl -L https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl > /app/kubectl && \
+    chmod +x /app/kubectl
 
 COPY examples/apache.conf /etc/httpd/conf.d/htcondor-autoscale-manager.conf
 COPY examples/supervisor-apache.conf /etc/supervisord.d/40-apache.conf

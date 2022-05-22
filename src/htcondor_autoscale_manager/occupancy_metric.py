@@ -1,15 +1,15 @@
 
 from . import get_offline_ads, count_idle, generate_offline_ad
-from . import count_idle
+from . import count_deploy
 
 import htcondor
 
 import time
 
-def occupancy_metric(resource, pool=None):
+def occupancy_metric(query, resource, pool=None):
     now = time.time()
 
-    counts = count_idle(resource, pool=pool)
+    counts = count_deploy(query, resource, pool=pool)
 
     print(f"There are {counts['idle']} idle startds in the resource out of {counts['total']} total.")
 
@@ -22,9 +22,10 @@ def occupancy_metric(resource, pool=None):
             good_ads.append(ad)
     if not good_ads:
         ad = generate_offline_ad(resource, pool=pool)
-        coll = htcondor.Collector(pool)
-        coll.advertise([ad], command="UPDATE_STARTD_AD")
-        good_ads.append(ad)
+        if ad:
+            coll = htcondor.Collector(pool)
+            coll.advertise([ad], command="UPDATE_STARTD_AD")
+            good_ads.append(ad)
 
     if not good_ads:
         print("Unable to generate an offline ad for this resource.  Is it running?")
@@ -38,9 +39,9 @@ def occupancy_metric(resource, pool=None):
 
     print(f"There were {useful_offline_ads} offline ads marked as useful.")
 
-    slots_needed = useful_offline_ads - counts['idle']
+    slots_needed = useful_offline_ads - counts['idle'] - count['offline']
     target_slots = counts['total'] + slots_needed
     metric = target_slots / counts['total']
     print(f"Current occcupancy metric value: {metric}")
 
-    return metric
+    return metric, counts
