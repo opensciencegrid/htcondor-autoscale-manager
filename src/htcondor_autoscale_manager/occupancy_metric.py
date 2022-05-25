@@ -39,7 +39,7 @@ def occupancy_metric(query, resource, pool=None):
 
     print(f"There were {useful_offline_ads} offline ads marked as useful.")
 
-    slots_needed = useful_offline_ads - counts['idle'] - count['offline']
+    slots_needed = useful_offline_ads - counts['idle'] - len(counts['offline_pods'])
     target_slots = counts['total'] + slots_needed
     metric = target_slots / counts['total']
     print(f"Current occcupancy metric value: {metric}")
