@@ -13,8 +13,12 @@ def count_deploy(query, resource, pool=None):
     count = json.loads(count.stdout)
 
     pods = set()
+    costs = {}
     for pod in count['items']:
         pods.add(pod['metadata']['name'])
+        costs[pod['metadata']['name']] = \
+            pod['metadata'].get('annotations', {}) \
+            .get("controller.kubernetes.io/pod-deletion-cost")
 
     coll = htcondor.Collector(pool)
     pslots = coll.query(htcondor.AdTypes.Startd,
@@ -38,4 +42,5 @@ def count_deploy(query, resource, pool=None):
             "total": len(pods),
             "idle": len(idle_pods),
             "offline_pods": pods.difference(online_pods),
+            "costs": costs,
            }

@@ -51,12 +51,16 @@ def metric_update():
             print(f"Exception occurred during metric update: {exc}")
             return
 
-    # Annotate the 'cost' of deleting the pod
-    for pod in counts['pods']:
+    # Annotate the 'cost' of deleting the pod.  We only want to patch
+    # for changes (which might include when the job originally starts).
+    for pod, current_cost in counts['costs'].items():
+        desired_cost = 10
         if pod not in counts['online_pods']:
-            htcondor_autoscale_manager.patch_annotation(pod, 0)
+            desired_cost = 0
         elif pod in counts['idle_pods']:
-            htcondor_autoscale_manager.patch_annotation(pod, 5)
+            desired_cost = 5
+        if desired_cost != current_cost:
+            htcondor_autoscale_manager.patch_annotation(pod, desired_cost)
 
 @app.route("/metrics")
 def metrics():
