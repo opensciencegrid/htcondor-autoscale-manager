@@ -1,5 +1,7 @@
 FROM opensciencegrid/software-base:3.6-el8-release
 
+LABEL maintainer OSG Software <help@opensciencegrid.org>
+
 # Install dependencies (application, Apache)
 RUN \
     yum update -y \
