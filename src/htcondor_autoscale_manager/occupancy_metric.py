@@ -6,7 +6,7 @@ import htcondor
 
 import time
 
-def occupancy_metric(query, resource, pool=None):
+def occupancy_metric(query, resource, scale_param, pool=None):
     now = time.time()
 
     counts = count_deploy(query, resource, pool=pool)
@@ -39,7 +39,7 @@ def occupancy_metric(query, resource, pool=None):
 
     print(f"There were {useful_offline_ads} offline ads marked as useful.")
 
-    slots_needed = useful_offline_ads - counts['idle'] - len(counts['offline_pods'])
+    slots_needed = useful_offline_ads * scale_param["velocity"] + scale_param["idlepods"] - counts['idle'] - len(counts['offline_pods'])
     target_slots = counts['total'] + slots_needed
     metric = target_slots / counts['total']
     print(f"Current occcupancy metric value: {metric}")
