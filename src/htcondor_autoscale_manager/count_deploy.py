@@ -7,7 +7,8 @@ import htcondor
 
 def count_deploy(query, resource, pool=None):
 
-    count = subprocess.run(["/app/kubectl", "get", "pods", "-o", "json", "-l", query], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    count = subprocess.run(["/app/kubectl", "get", "pods", "-o", "json", "-l", query,
+        "--field-selector", "status.phase==Running"], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     count.check_returncode()
 
     count = json.loads(count.stdout)
@@ -30,11 +31,19 @@ def count_deploy(query, resource, pool=None):
     idle_pods = set()
     for slot in pslots:
         name = slot.get("UtsnameNodename")
-        if not name:
+        # nodename to podname
+        # in case when the condor worker pod uses hostnetwork, the UtsnameNodename field is the hostname 
+        # translate the hostname to pod name
+        if name in pods:
+            podname = name
+        else:
+            podname = next((pod['metadata']['name'] for pod in count['items'] if pod['spec'].get('hostNetwork', False) == True and pod['spec']['nodeName'] == name), None)
+        if not podname:
             continue
-        online_pods.add(name)
+
+        online_pods.add(podname)
         if slot.get("CPUs") == slot.get("TotalCpus"):
-            idle_pods.add(name)
+            idle_pods.add(podname)
 
     return {"pods": pods,
             "idle_pods": idle_pods,
