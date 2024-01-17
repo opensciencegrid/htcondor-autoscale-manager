@@ -28,7 +28,7 @@ jobs:
         os: ['el9']
         repo: ['development', 'testing', 'release']
     steps:
-      - uses: opensciencegrid/build-container-action@v0.6.0
+      - uses: opensciencegrid/build-container-action@v0.6.1
         with:
           base_os: ${{ matrix.os }}
           osg_series: ${{ matrix.osg_series }}
