@@ -4,7 +4,7 @@ ARG BASE_YUM_REPO=release
 
 FROM opensciencegrid/software-base:$BASE_OSG_SERIES-$BASE_OS-$BASE_YUM_REPO
 
-LABEL maintainer OSG Software <help@opensciencegrid.org>
+LABEL maintainer OSG Software <help@osg-htc.org>
 
 # Install dependencies (application, Apache)
 RUN \
