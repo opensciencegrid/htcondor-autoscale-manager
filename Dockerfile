@@ -1,6 +1,10 @@
-FROM opensciencegrid/software-base:3.6-el8-release
+ARG BASE_OSG_SERIES=23
+ARG BASE_OS=el9
+ARG BASE_YUM_REPO=release
 
-LABEL maintainer OSG Software <help@opensciencegrid.org>
+FROM opensciencegrid/software-base:$BASE_OSG_SERIES-$BASE_OS-$BASE_YUM_REPO
+
+LABEL maintainer OSG Software <help@osg-htc.org>
 
 # Install dependencies (application, Apache)
 RUN \
@@ -18,11 +22,11 @@ RUN \
 WORKDIR /app
 
 # Install application dependencies
-COPY pyproject.toml setup.cfg examples/condor_lock.patch /app/
+COPY pyproject.toml setup.cfg /app/
 COPY src /app/src
 RUN pip3 install --upgrade pip setuptools && pip3 install --no-cache-dir /app
 
-RUN touch /etc/sysconfig/httpd && mkdir /wsgi && cd / && patch -p0 < /app/condor_lock.patch && \
+RUN touch /etc/sysconfig/httpd && mkdir /wsgi && \
     curl -L https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl > /app/kubectl && \
     chmod +x /app/kubectl
 
